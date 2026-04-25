@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Prompt Manager (Templates + Variables + Full Sync+шаблоны+токены+теги+makdown+версии с правильной нумерацией+поиск по тэгам (list и часть word, масса undo)
 // @namespace    http://tampermonkey.net/
-// @version      12.9
+// @version      12.10
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
@@ -2443,30 +2443,29 @@ function showUpdateNotificationInModal() {
         }
     }
     
-    const versionText = t('updateNotification').replace('${version}', pendingUpdateNotification.version);
     notificationBar.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <span>🎉 ${versionText}</span>
-            <button id="qpm-view-changes-btn" style="
-                background: rgba(255,215,0,0.2);
-                border: 1px solid #ffd700;
-                color: #ffd700;
-                padding: 4px 12px;
-                border-radius: 16px;
-                cursor: pointer;
-                font-size: 11px;
-                transition: all 0.2s;
-            ">${t('viewChanges')}</button>
-        </div>
-        <button id="qpm-dismiss-update" style="
-            background: none;
-            border: none;
-            color: #888;
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span>🎉 Менеджер обновлён! Есть новые возможности.</span>
+        <button id="qpm-view-changes-btn" style="
+            background: rgba(255,215,0,0.2);
+            border: 1px solid #ffd700;
+            color: #ffd700;
+            padding: 4px 12px;
+            border-radius: 16px;
             cursor: pointer;
-            font-size: 16px;
-            padding: 0 6px;
-        ">✖️</button>
-    `;
+            font-size: 11px;
+            transition: all 0.2s;
+        ">📋 Посмотреть изменения</button>
+    </div>
+    <button id="qpm-dismiss-update" style="
+        background: none;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0 6px;
+    ">✖️</button>
+`;
     notificationBar.style.display = 'flex';
     
     // Обработчик для просмотра изменений
@@ -2503,8 +2502,8 @@ function showChangelogModal() {
         <div class="qpm-preview" style="width: 500px; max-width: 90%;">
             <div class="qpm-preview-header">
                 <div class="qpm-preview-title">
-                    🎉 ${t('updateNotification').replace('${version}', pendingUpdateNotification.version)}
-                </div>
+    🎉 Что нового в менеджере
+</div>
                 <div class="qpm-preview-close" id="qpm-changelog-close">&times;</div>
             </div>
             <div style="padding: 20px;">
@@ -5001,9 +5000,9 @@ overlay.querySelector('#qpm-backup-btn').addEventListener('click', () => {
 overlay.querySelector('#qpm-changelog-btn').addEventListener('click', () => {
     if (!pendingUpdateNotification) {
         pendingUpdateNotification = {
-            version: SCRIPT_VERSION,
-            changes: [
+                        changes: [
                 '📥 Заменили буквы "I/E" на иконки 📥 и 📤'
+                            'ntcn'
             ]
         };
     }
