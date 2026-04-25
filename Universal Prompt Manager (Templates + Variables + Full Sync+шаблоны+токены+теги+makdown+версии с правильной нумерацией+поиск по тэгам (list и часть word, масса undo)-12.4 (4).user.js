@@ -4,17 +4,17 @@
 // @version      12.4
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
-// @match        https://chat.qwen.ai/*
-// @match        https://chat.deepseek.com/*
-// @match        https://alice.yandex.ru/*
-// @match        https://giga.chat/*
-// @grant        GM_setValue
-// @grant        GM_getValue
+
 // @run-at       document-end
 // @downloadURL  https://raw.githubusercontent.com/supersvetodiod/prompt-manager/main/Universal%20Prompt%20Manager.user.js
 // @updateURL    https://raw.githubusercontent.com/supersvetodiod/prompt-manager/main/Universal%20Prompt%20Manager.user.js
 // @homepageURL  https://github.com/supersvetodiod/prompt-manager
 // ==/UserScript==
+
+// core.js - ваш основной код
+(function() {
+    'use strict';
+
 (function() {
 'use strict';
 
