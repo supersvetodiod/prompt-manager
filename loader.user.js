@@ -21,7 +21,7 @@
     
     // Функция для загрузки основного кода
     function loadCore() {
-        const coreUrl = 'https://raw.githubusercontent.com/ВАШ_НИК/repo/main/core.js';
+        const coreUrl = 'https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/corer.js';
         
         GM_xmlhttpRequest({
             method: 'GET',
