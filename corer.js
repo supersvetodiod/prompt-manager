@@ -4989,26 +4989,19 @@ function createModal() {
     overlay.querySelector('#qpm-add-folder').addEventListener('click', () => { createFolder(null); autoSave(); });
     overlay.querySelector('#qpm-add-prompt').addEventListener('click', () => openEditor(null));
     overlay.querySelector('#qpm-backup-btn').addEventListener('click', () => {
-        showBackupDialog();
-    });
-
-overlay.querySelector('#qpm-backup-btn').addEventListener('click', () => {
     showBackupDialog();
 });
 
-// 👇 ВСТАВИТЬ ЭТОТ КОД СЮДА (после кнопки backup)
 overlay.querySelector('#qpm-changelog-btn').addEventListener('click', () => {
     if (!pendingUpdateNotification) {
         pendingUpdateNotification = {
-                        changes: [
+            changes: [
                 '📥 Заменили буквы "I/E" на иконки 📥 и 📤'
-                            'ntcn'
             ]
         };
     }
     showChangelogModal();
 });
-// 👆 ДО СЮДА
 
 overlay.querySelector('#qpm-export-btn').addEventListener('click', exportPrompts);
     
