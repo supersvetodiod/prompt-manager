@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Prompt Manager (Templates + Variables + Full Sync+шаблоны+токены+теги+makdown+версии с правильной нумерацией+поиск по тэгам (list и часть word, масса undo)
 // @namespace    http://tampermonkey.net/
-// @version      12.6
+// @version      12.7
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
@@ -181,6 +181,8 @@ modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖�
         restoreBackupConfirm: 'Восстановить данные из этого бэкапа? Текущие данные будут сохранены как отдельный бэкап.',
         noPromptsForExport: 'Нет промптов для экспорта',
         exportMarkdownSuccess: '📝 Экспорт в Markdown выполнен ✓'
+        updateNotification: '🎉 Менеджер обновлён до версии ${version}',
+viewChanges: '📋 Посмотреть изменения'
     },
     en: {
         title: 'Prompt Manager',
@@ -345,6 +347,8 @@ modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖�
         restoreBackupConfirm: 'Restore data from this backup? Current data will be saved as a separate backup.',
         noPromptsForExport: 'No prompts to export',
         exportMarkdownSuccess: '📝 Export to Markdown completed ✓'
+    updateNotification: '🎉 Manager updated to version ${version}',
+viewChanges: '📋 View changes'
     },
     fr: {
         title: 'Gestionnaire de Prompts',
@@ -509,6 +513,8 @@ modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖�
         restoreBackupConfirm: 'Restaurer les données depuis cette sauvegarde ? Les données actuelles seront sauvegardées séparément.',
         noPromptsForExport: 'Aucun prompt à exporter',
         exportMarkdownSuccess: '📝 Export Markdown terminé ✓'
+        updateNotification: '🎉 Gestionnaire mis à jour vers la version ${version}',
+viewChanges: '📋 Voir les modifications'
     }
 };
 
@@ -2367,20 +2373,126 @@ function updateStatsDisplay(statsContainer, chars, tokens, limit) {
     }
 }
 
-// === ПРОВЕРКА ОБНОВЛЕНИЙ С ПОКАЗОМ CHANGELOG ===
-function checkForUpdates() {
-    const lastVersion = localStorage.getItem('qpm_last_version');
-    if (lastVersion !== SCRIPT_VERSION) {
-        localStorage.setItem('qpm_last_version', SCRIPT_VERSION);
+
+
+function showUpdateNotificationInModal() {
+    if (!pendingUpdateNotification || !modalEl) return;
+    
+    // Ищем контейнер для уведомлений (внизу модального окна, над статистикой)
+    let notificationBar = modalEl.querySelector('#qpm-update-notification');
+    if (!notificationBar) {
+        // Создаём новый контейнер, если его нет
+        notificationBar = document.createElement('div');
+        notificationBar.id = 'qpm-update-notification';
+        notificationBar.style.cssText = `
+            background: linear-gradient(145deg, #2a5a6a, #1a4a5a);
+            border-bottom: 1px solid #3a8a9a;
+            color: #a8e4ff;
+            padding: 10px 15px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        `;
         
-        const changes = [
-            '📥 Заменили буквы "I/E" на иконки 📥 (импорт) и 📤 (экспорт)'
-        ];
-        
-        setTimeout(() => {
-            showToast(`✅ Обновлено до версии ${SCRIPT_VERSION}\n${changes.map(c => '▪ ' + c).join('\n')}`, false);
-        }, 1500);
+        // Вставляем вверху основной области (после search-area, но перед масс-акшенс)
+        const mainArea = modalEl.querySelector('.qpm-main');
+        const searchArea = modalEl.querySelector('.qpm-search-area');
+        if (mainArea && searchArea) {
+            mainArea.insertBefore(notificationBar, searchArea.nextSibling);
+        }
     }
+    
+    const versionText = t('updateNotification').replace('${version}', pendingUpdateNotification.version);
+    notificationBar.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span>🎉 ${versionText}</span>
+            <button id="qpm-view-changes-btn" style="
+                background: rgba(255,215,0,0.2);
+                border: 1px solid #ffd700;
+                color: #ffd700;
+                padding: 4px 12px;
+                border-radius: 16px;
+                cursor: pointer;
+                font-size: 11px;
+                transition: all 0.2s;
+            ">${t('viewChanges')}</button>
+        </div>
+        <button id="qpm-dismiss-update" style="
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0 6px;
+        ">✖️</button>
+    `;
+    notificationBar.style.display = 'flex';
+    
+    // Обработчик для просмотра изменений
+    const viewBtn = notificationBar.querySelector('#qpm-view-changes-btn');
+    if (viewBtn) {
+        viewBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showChangelogModal();
+        });
+    }
+    
+    // Обработчик для закрытия уведомления
+    const dismissBtn = notificationBar.querySelector('#qpm-dismiss-update');
+    if (dismissBtn) {
+        dismissBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationBar.style.display = 'none';
+        });
+    }
+}
+
+function showChangelogModal() {
+    if (!pendingUpdateNotification) return;
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'qpm-preview-overlay';
+    overlay.id = 'qpm-changelog-overlay';
+    
+    const changesHtml = pendingUpdateNotification.changes.map(c => 
+        `<li style="margin-bottom: 8px; color: #ddd;">${c}</li>`
+    ).join('');
+    
+    overlay.innerHTML = `
+        <div class="qpm-preview" style="width: 500px; max-width: 90%;">
+            <div class="qpm-preview-header">
+                <div class="qpm-preview-title">
+                    🎉 ${t('updateNotification').replace('${version}', pendingUpdateNotification.version)}
+                </div>
+                <div class="qpm-preview-close" id="qpm-changelog-close">&times;</div>
+            </div>
+            <div style="padding: 20px;">
+                <p style="color: #888; margin-bottom: 15px;">✨ Что нового:</p>
+                <ul style="margin: 0; padding-left: 20px;">
+                    ${changesHtml}
+                </ul>
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #444; font-size: 12px; color: #666;">
+                    💡 Спасибо, что используете Prompt Manager!
+                </div>
+            </div>
+            <div class="qpm-preview-footer">
+                <button class="qpm-preview-btn qpm-preview-btn-close" id="qpm-changelog-done">${t('close')}</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    overlay.style.display = 'flex';
+    
+    const close = () => overlay.remove();
+    overlay.querySelector('#qpm-changelog-close').addEventListener('click', close);
+    overlay.querySelector('#qpm-changelog-done').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
 }
     
 function showToast(message, isError = false) {
@@ -4940,6 +5052,8 @@ function toggleModal() {
         }
         updateTrashBadge();
         syncFromExternalStorage(true);
+        // Показываем уведомление об обновлении, если есть
+        showUpdateNotificationInModal();
     }
 }
 
