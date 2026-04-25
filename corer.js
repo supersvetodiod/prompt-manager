@@ -4866,11 +4866,12 @@ function createModal() {
                     <div class="qpm-sidebar-header">
                         <span class="qpm-sidebar-title">${t('folders')}</span>
                         <div class="qpm-sidebar-buttons">
-                            <button class="qpm-add-folder-btn" id="qpm-add-folder" title="${t('createFolder')}">+</button>
-                            <button class="qpm-sidebar-action-btn delete-all" id="qpm-delete-all-btn" title="${t('deleteAllFolders')}">🗑️</button>
-                            <button class="qpm-sidebar-action-btn" id="qpm-trash-btn" title="${t('trash')}" style="background: linear-gradient(145deg, #6a2a2a, #5a1a1a); color: #ffa8a8; border: 1px solid #9a3a3a;">🗑️</button>
-                            <button class="qpm-sidebar-action-btn" id="qpm-backup-btn" title="${t('backupTitle').replace('${current}', backupStack.length).replace('${max}', MAX_BACKUPS)}" style="background: linear-gradient(145deg, #2a5a6a, #1a4a5a); color: #a8e4ff; border: 1px solid #3a8a9a;">💾</button>
-                        </div>
+    <button class="qpm-add-folder-btn" id="qpm-add-folder" title="${t('createFolder')}">+</button>
+    <button class="qpm-sidebar-action-btn delete-all" id="qpm-delete-all-btn" title="${t('deleteAllFolders')}">🗑️</button>
+    <button class="qpm-sidebar-action-btn" id="qpm-trash-btn" title="${t('trash')}">🗑️</button>
+    <button class="qpm-sidebar-action-btn" id="qpm-backup-btn" title="${t('backupTitle')}">💾</button>
+    <button class="qpm-sidebar-action-btn" id="qpm-changelog-btn" title="Что нового" style="background: linear-gradient(145deg, #e67e22, #d35400);">🎉</button>
+</div>
                     </div>
                     <div class="qpm-folder-list" id="qpm-folder-list"></div>
                 </div>
@@ -4975,6 +4976,27 @@ function createModal() {
     overlay.querySelector('#qpm-backup-btn').addEventListener('click', () => {
         showBackupDialog();
     });
+
+overlay.querySelector('#qpm-backup-btn').addEventListener('click', () => {
+    showBackupDialog();
+});
+
+// 👇 ВСТАВИТЬ ЭТОТ КОД СЮДА (после кнопки backup)
+overlay.querySelector('#qpm-changelog-btn').addEventListener('click', () => {
+    if (!pendingUpdateNotification) {
+        pendingUpdateNotification = {
+            version: SCRIPT_VERSION,
+            changes: [
+                '📥 Заменили буквы "I/E" на иконки 📥 и 📤'
+            ]
+        };
+    }
+    showChangelogModal();
+});
+// 👆 ДО СЮДА
+
+overlay.querySelector('#qpm-export-btn').addEventListener('click', exportPrompts);
+    
     const searchInput = overlay.querySelector('#qpm-search');
     searchInput.addEventListener('input', (e) => {
         currentSearchQuery = e.target.value;
