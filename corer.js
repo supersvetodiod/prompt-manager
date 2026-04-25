@@ -2398,9 +2398,7 @@ function checkForUpdates() {
         localStorage.setItem('qpm_last_version', SCRIPT_VERSION);
         
         pendingUpdateNotification = {
-            changes: [
-                'tot',
-                'тест '
+            changes: [              
             ]
         };
         
