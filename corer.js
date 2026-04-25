@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Prompt Manager (Templates + Variables + Full Sync+шаблоны+токены+теги+makdown+версии с правильной нумерацией+поиск по тэгам (list и часть word, масса undo)
 // @namespace    http://tampermonkey.net/
-// @version      12.4
+// @version      12.6
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
@@ -562,7 +562,9 @@ const STORAGE_KEY_EXPANDED = STORAGE_KEY + '_expanded';
 const TRASH_CLEANUP_DAYS = 30;
 const TRASH_CLEANUP_MS = TRASH_CLEANUP_DAYS * 24 * 60 * 60 * 1000;
 const FAVORITES_FOLDER_ID = 'favorites_root';
+const SCRIPT_VERSION = (typeof GM_info !== 'undefined' && GM_info.script && GM_info.script.version) ? GM_info.script.version : '12.5';
 
+    
 let data = { folders: [], prompts: [] };
 let currentFolderId = 'all';
 let modalOpen = false;
@@ -2365,6 +2367,22 @@ function updateStatsDisplay(statsContainer, chars, tokens, limit) {
     }
 }
 
+// === ПРОВЕРКА ОБНОВЛЕНИЙ С ПОКАЗОМ CHANGELOG ===
+function checkForUpdates() {
+    const lastVersion = localStorage.getItem('qpm_last_version');
+    if (lastVersion !== SCRIPT_VERSION) {
+        localStorage.setItem('qpm_last_version', SCRIPT_VERSION);
+        
+        const changes = [
+            '📥 Заменили буквы "I/E" на иконки 📥 (импорт) и 📤 (экспорт)'
+        ];
+        
+        setTimeout(() => {
+            showToast(`✅ Обновлено до версии ${SCRIPT_VERSION}\n${changes.map(c => '▪ ' + c).join('\n')}`, false);
+        }, 1500);
+    }
+}
+    
 function showToast(message, isError = false) {
     let toast = document.querySelector('.qpm-toast');
     if (!toast) {
@@ -2375,7 +2393,7 @@ function showToast(message, isError = false) {
     }
     toast.querySelector('.qpm-toast-msg').textContent = message;
     toast.className = 'qpm-toast show' + (isError ? ' error' : '');
-    setTimeout(() => toast.classList.remove('show'), 2500);
+    setTimeout(() => toast.classList.remove('show'), 6000);
 }
 
 // === UNDO ДЛЯ МАССОВЫХ ОПЕРАЦИЙ ===
@@ -5105,7 +5123,7 @@ function autoSave() { saveData(false); }
 loadData();
 loadBackupsFromStorage();
 checkDailyBackup();
-
+checkForUpdates();   // <-- добавить эту строку
 document.addEventListener('keydown', (e) => {
     // Проверяем, открыт ли редактор
     const editorOverlay = document.getElementById('qpm-editor-overlay');
