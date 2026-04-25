@@ -2398,7 +2398,6 @@ function checkForUpdates() {
         localStorage.setItem('qpm_last_version', SCRIPT_VERSION);
         
         pendingUpdateNotification = {
-            version: SCRIPT_VERSION,
             changes: [
                 'tot',
                 'тест '
@@ -4997,7 +4996,7 @@ overlay.querySelector('#qpm-changelog-btn').addEventListener('click', () => {
     if (!pendingUpdateNotification) {
         pendingUpdateNotification = {
             changes: [
-                '📥 Заменили буквы "I/E" на иконки 📥 и 📤'
+                'тут'
             ]
         };
     }
@@ -5021,7 +5020,6 @@ overlay.querySelector('#qpm-export-btn').addEventListener('click', exportPrompts
             if (tagDropdown) tagDropdown.style.display = 'none';
         }, 200);
     });
-    overlay.querySelector('#qpm-export-btn').addEventListener('click', exportPrompts);
     overlay.querySelector('#qpm-export-md-btn').addEventListener('click', exportToMarkdown);
     overlay.querySelector('#qpm-delete-all-btn').addEventListener('click', deleteAllFoldersMenu);
     overlay.querySelector('#qpm-trash-btn').addEventListener('click', () => {
