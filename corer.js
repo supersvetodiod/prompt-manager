@@ -568,7 +568,23 @@ const STORAGE_KEY_EXPANDED = STORAGE_KEY + '_expanded';
 const TRASH_CLEANUP_DAYS = 30;
 const TRASH_CLEANUP_MS = TRASH_CLEANUP_DAYS * 24 * 60 * 60 * 1000;
 const FAVORITES_FOLDER_ID = 'favorites_root';
-const SCRIPT_VERSION = (typeof GM_info !== 'undefined' && GM_info.script && GM_info.script.version) ? GM_info.script.version : '12.5';
+const SCRIPT_VERSION = (() => {
+    // Пытаемся получить версию из мета-блока Tampermonkey
+    const scripts = document.querySelectorAll('script');
+    for (const script of scripts) {
+        const content = script.textContent || script.innerText;
+        if (content && content.includes('@version')) {
+            const match = content.match(/@version\s+([\d.]+)/);
+            if (match) return match[1];
+        }
+    }
+    // Резервный вариант: из GM_info (для прямого запуска без лоадера)
+    if (typeof GM_info !== 'undefined' && GM_info.script && GM_info.script.version) {
+        return GM_info.script.version;
+    }
+    // Если ничего не нашли
+    return '12.7';
+})();
 
     
 let data = { folders: [], prompts: [] };
