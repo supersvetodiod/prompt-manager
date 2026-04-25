@@ -12,8 +12,8 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @run-at       document-end
-// @downloadURL  https://raw.githubusercontent.com/ВАШ_НИК/repo/main/loader.user.js
-// @updateURL    https://raw.githubusercontent.com/ВАШ_НИК/repo/main/loader.user.js
+// @downloadURL  https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/loader.user.js
+// @updateURL    https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/loader.user.js
 // ==/UserScript==
 
 (function() {
