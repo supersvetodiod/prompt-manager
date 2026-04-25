@@ -182,7 +182,7 @@ modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖�
         noPromptsForExport: 'Нет промптов для экспорта',
         exportMarkdownSuccess: '📝 Экспорт в Markdown выполнен ✓',
         updateNotification: '🎉 Менеджер обновлён до версии ${version}',
-viewChanges: '📋 Посмотреть изменения'
+view: '📋 Посмотреть изменения'
     },
     en: {
         title: 'Prompt Manager',
@@ -348,7 +348,7 @@ modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖�
         noPromptsForExport: 'No prompts to export',
         exportMarkdownSuccess: '📝 Export to Markdown completed ✓',
     updateNotification: '🎉 Manager updated to version ${version}',
-viewChanges: '📋 View changes'
+view: '📋 View changes'
     },
     fr: {
         title: 'Gestionnaire de Prompts',
@@ -2400,7 +2400,7 @@ function checkForUpdates() {
         pendingUpdateNotification = {
             version: SCRIPT_VERSION,
             changes: [
-                '📥 Заменили буквы "I/E" на иконки 📥 (импорт) и 📤 (экспорт)',
+                'tot',
                 'тест '
             ]
         };
@@ -4993,6 +4993,7 @@ function createModal() {
 });
 
 overlay.querySelector('#qpm-changelog-btn').addEventListener('click', () => {
+    // Если уведомление ещё не создано, создаём с тестовым списком
     if (!pendingUpdateNotification) {
         pendingUpdateNotification = {
             changes: [
