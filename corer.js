@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Prompt Manager (Templates + Variables + Full Sync+шаблоны+токены+теги+makdown+версии с правильной нумерацией+поиск по тэгам (list и часть word, масса undo)
 // @namespace    http://tampermonkey.net/
-// @version      12.7
+// @version      12.1
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
@@ -182,7 +182,7 @@ modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖�
         noPromptsForExport: 'Нет промптов для экспорта',
         exportMarkdownSuccess: '📝 Экспорт в Markdown выполнен ✓'
         updateNotification: '🎉 Менеджер обновлён до версии ${version}',
-viewChanges: '📋 Посмотреть изменения'
+viewChanges: '📋 Посмотреть изменения''
     },
     en: {
         title: 'Prompt Manager',
@@ -346,7 +346,7 @@ modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖�
         deleteBackupConfirm: 'Delete this backup?',
         restoreBackupConfirm: 'Restore data from this backup? Current data will be saved as a separate backup.',
         noPromptsForExport: 'No prompts to export',
-        exportMarkdownSuccess: '📝 Export to Markdown completed ✓'
+        exportMarkdownSuccess: '📝 Export to Markdown completed ✓',
     updateNotification: '🎉 Manager updated to version ${version}',
 viewChanges: '📋 View changes'
     },
@@ -512,7 +512,7 @@ modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖�
         deleteBackupConfirm: 'Supprimer cette sauvegarde ?',
         restoreBackupConfirm: 'Restaurer les données depuis cette sauvegarde ? Les données actuelles seront sauvegardées séparément.',
         noPromptsForExport: 'Aucun prompt à exporter',
-        exportMarkdownSuccess: '📝 Export Markdown terminé ✓'
+        exportMarkdownSuccess: '📝 Export Markdown terminé ✓',
         updateNotification: '🎉 Gestionnaire mis à jour vers la version ${version}',
 viewChanges: '📋 Voir les modifications'
     }
@@ -2373,7 +2373,26 @@ function updateStatsDisplay(statsContainer, chars, tokens, limit) {
     }
 }
 
+let pendingUpdateNotification = null;
 
+// === ПРОВЕРКА ОБНОВЛЕНИЙ С ПОКАЗОМ УВЕДОМЛЕНИЯ В МЕНЕДЖЕРЕ ===
+function checkForUpdates() {
+    const lastVersion = localStorage.getItem('qpm_last_version');
+    if (lastVersion !== SCRIPT_VERSION) {
+        localStorage.setItem('qpm_last_version', SCRIPT_VERSION);
+        
+        pendingUpdateNotification = {
+            version: SCRIPT_VERSION,
+            changes: [
+                '📥 Заменили буквы "I/E" на иконки 📥 (импорт) и 📤 (экспорт)'
+            ]
+        };
+        
+        if (modalOpen && modalEl) {
+            showUpdateNotificationInModal();
+        }
+    }
+}
 
 function showUpdateNotificationInModal() {
     if (!pendingUpdateNotification || !modalEl) return;
