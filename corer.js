@@ -4994,7 +4994,8 @@ overlay.querySelector('#qpm-changelog-btn').addEventListener('click', () => {
     if (!pendingUpdateNotification) {
         pendingUpdateNotification = {
             changes: [
-                'тут'
+                'тут',
+                'снова тут'
             ]
         };
     }
