@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Prompt Manager (Templates + Variables + Full Sync+шаблоны+токены+теги+makdown+версии с правильной нумерацией+поиск по тэгам (list и часть word, масса undo)
 // @namespace    http://tampermonkey.net/
-// @version      12.1
+// @version      12.8
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
@@ -2385,6 +2385,7 @@ function checkForUpdates() {
             version: SCRIPT_VERSION,
             changes: [
                 '📥 Заменили буквы "I/E" на иконки 📥 (импорт) и 📤 (экспорт)'
+                'тест '
             ]
         };
         
