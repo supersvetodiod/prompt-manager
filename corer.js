@@ -2384,7 +2384,7 @@ function checkForUpdates() {
         pendingUpdateNotification = {
             version: SCRIPT_VERSION,
             changes: [
-                '📥 Заменили буквы "I/E" на иконки 📥 (импорт) и 📤 (экспорт)'
+                '📥 Заменили буквы "I/E" на иконки 📥 (импорт) и 📤 (экспорт)',
                 'тест '
             ]
         };
