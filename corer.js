@@ -180,9 +180,9 @@ modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖�
         deleteBackupConfirm: 'Удалить этот бэкап?',
         restoreBackupConfirm: 'Восстановить данные из этого бэкапа? Текущие данные будут сохранены как отдельный бэкап.',
         noPromptsForExport: 'Нет промптов для экспорта',
-        exportMarkdownSuccess: '📝 Экспорт в Markdown выполнен ✓'
+        exportMarkdownSuccess: '📝 Экспорт в Markdown выполнен ✓',
         updateNotification: '🎉 Менеджер обновлён до версии ${version}',
-viewChanges: '📋 Посмотреть изменения''
+viewChanges: '📋 Посмотреть изменения'
     },
     en: {
         title: 'Prompt Manager',
