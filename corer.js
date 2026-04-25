@@ -4739,8 +4739,8 @@ function createModal() {
                                     <div class="qpm-filter-dropdown-item" id="qpm-filter-trash" data-filter="trash" style="border-top: 1px solid #444; margin-top: 5px;">🗑️ ${t('trash')}</div>
                                 </div>
                             </div>
-                            <button class="qpm-sidebar-action-btn import" id="qpm-import-btn" title="${t('import')}">${t('import').charAt(0)}</button>
-                            <button class="qpm-sidebar-action-btn export" id="qpm-export-btn" title="${t('export')}">${t('export').charAt(0)}</button>
+                            <button class="qpm-sidebar-action-btn import" id="qpm-import-btn" title="${t('import')}">📥</button>
+<button class="qpm-sidebar-action-btn export" id="qpm-export-btn" title="${t('export')}">📤</button>
                             <button class="qpm-sidebar-action-btn export-markdown" id="qpm-export-md-btn" title="${t('exportMarkdown')}" style="background: linear-gradient(145deg, #e67e22, #d35400);">📝</button>
                             <button class="qpm-add-prompt-btn" id="qpm-add-prompt">${t('newPrompt')}</button>
                         </div>
