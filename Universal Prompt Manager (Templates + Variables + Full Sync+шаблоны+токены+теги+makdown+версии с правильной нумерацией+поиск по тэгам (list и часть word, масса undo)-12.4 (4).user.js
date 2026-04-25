@@ -11,6 +11,9 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @run-at       document-end
+// @downloadURL  https://raw.githubusercontent.com/supersvetodiod/prompt-manager/main/Universal%20Prompt%20Manager.user.js
+// @updateURL    https://raw.githubusercontent.com/supersvetodiod/prompt-manager/main/Universal%20Prompt%20Manager.user.js
+// @homepageURL  https://github.com/supersvetodiod/prompt-manager
 // ==/UserScript==
 (function() {
 'use strict';
