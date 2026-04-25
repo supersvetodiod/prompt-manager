@@ -6,8 +6,8 @@
 // @author       You
 
 // @run-at       document-end
-// @downloadURL  https://raw.githubusercontent.com/supersvetodiod/prompt-manager/main/Universal%20Prompt%20Manager.user.js
-// @updateURL    https://raw.githubusercontent.com/supersvetodiod/prompt-manager/main/Universal%20Prompt%20Manager.user.js
+// @downloadURL  https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/corer.js
+// @updateURL    https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/corer.js
 // @homepageURL  https://github.com/supersvetodiod/prompt-manager
 // ==/UserScript==
 
@@ -15,8 +15,6 @@
 (function() {
     'use strict';
 
-(function() {
-'use strict';
 
 // === ЛОКАЛИЗАЦИЯ ===
 const I18N = {
