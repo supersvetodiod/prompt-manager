@@ -3942,15 +3942,32 @@ function massDeletePermanentlySelected() {
     const count = selectedPrompts.size;
     if (count === 0) return;
     if (confirm(t('confirmMassDeletePermanent').replace('{count}', count))) {
+        // Удаляем выбранные промпты
         data.prompts = data.prompts.filter(p => !selectedPrompts.has(p.id));
-        clearSelection();
-        renderTrash();
+        
+        // Очищаем выделение
+        selectedPrompts.clear();
+        lastSelectedPromptId = null;
+        
+        // Сохраняем изменения
+        saveData();
+        
+        // Обновляем интерфейс корзины
+        if (currentFolderId === 'trash') {
+            renderTrash();
+        } else {
+            renderPrompts(currentSearchQuery);
+        }
+        
+        // Обновляем папки и бейдж корзины
         renderFolders();
         updateTrashBadge();
-        showToast(`💀 ${count} ` + t('foldersDeleted'));
+        updateMassActionsBar();
+        
+        // Показываем уведомление
+        showToast(`💀 ${count} ${t('foldersDeleted')}`, false);
     }
 }
-
 function massMoveSelected() {
     const count = selectedPrompts.size;
     if (count === 0) return;
