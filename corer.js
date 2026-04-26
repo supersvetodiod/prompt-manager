@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Prompt Manager (Templates + Variables + Full Sync+шаблоны+токены+теги+makdown+версии с правильной нумерацией+поиск по тэгам (list и часть word, масса undo)
 // @namespace    http://tampermonkey.net/
-// @version      12.9
+// @version      12.10
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
@@ -885,11 +885,19 @@ const styles = `
     }
     .qpm-btn:hover { background-color: #666; border-color: #777; }
     .qpm-btn:active { background-color: #333; }
+        /* АНИМАЦИЯ МОДАЛЬНОГО ОКНА - ЗАМЕНИТЬ ЭТОТ БЛОК */
     .qpm-modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.7); z-index: 99999;
-        display: none; justify-content: center; align-items: center;
+        background: rgba(0,0,0,0); z-index: 99999;
+        display: flex; justify-content: center; align-items: center;
+        backdrop-filter: blur(0px);
+        transition: background 0.25s ease, backdrop-filter 0.25s ease;
+        pointer-events: none;
+    }
+    .qpm-modal-overlay.open {
+        background: rgba(0,0,0,0.7);
         backdrop-filter: blur(3px);
+        pointer-events: auto;
     }
     .qpm-modal {
         background: #202123; color: #ececf1;
@@ -897,6 +905,13 @@ const styles = `
         border-radius: 10px; display: flex; flex-direction: column;
         border: 1px solid #444; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+        transition: opacity 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.25s ease;
+    }
+    .qpm-modal-overlay.open .qpm-modal {
+        opacity: 1;
+        transform: scale(1) translateY(0);
     }
     .qpm-header {
         display: flex; justify-content: space-between; align-items: center;
@@ -2409,7 +2424,8 @@ function checkForUpdates() {
             changes: [
                 '✨ Добавлено перетаскивание промтов между папками',
                 '🐛 Исправлено массовое удаление из корзины',
-                '🎉 Улучшено уведомление об обновлениях'
+                '🎉 Улучшено уведомление об обновлениях',
+                'Анимация откртия окон'
             ]
         };
         // ⬆️⬆️⬆️ ТОЛЬКО ЗДЕСЬ МЕНЯЙТЕ СПИСОК ИЗМЕНЕНИЙ ⬆️⬆️⬆️
@@ -4921,6 +4937,7 @@ setInterval(() => { syncFromExternalStorage(false); }, 3000);
 function createModal() {
     const overlay = document.createElement('div');
     overlay.className = 'qpm-modal-overlay'; overlay.id = 'qpm-overlay';
+    overlay.style.display = 'flex'; // всегда flex, управляем через класс open
     overlay.innerHTML = `
         <div class="qpm-modal">
             <div class="qpm-header">
@@ -5013,6 +5030,8 @@ function createModal() {
     `;
     document.body.appendChild(overlay);
     modalEl = overlay;
+        modalEl.classList.remove('open');
+    modalEl.style.display = 'none';
     overlay.querySelector('#qpm-lang-select').addEventListener('change', (e) => {
         currentLang = e.target.value;
         localStorage.setItem('qpm_language', currentLang);
@@ -5150,24 +5169,53 @@ function updateModalContent() {
     updateMassActionsBar();
 }
 
-function toggleModal() {
-    if (!modalEl) { loadData(); createModal(); }
-    modalOpen = !modalOpen;
-    modalEl.style.display = modalOpen ? 'flex' : 'none';
-    if (modalOpen) {
-        currentSearchQuery = '';
-        clearSelection();
-        if (modalEl.querySelector('#qpm-search')) modalEl.querySelector('#qpm-search').value = '';
-        renderFolders();
-        if (currentFolderId === 'trash') {
-            renderTrash();
-        } else {
-            renderPrompts();
+let modalTransitionPromise = null;
+
+function showModal() {
+    if (!modalEl) {
+        loadData();
+        createModal();
+    }
+    modalOpen = true;
+    modalEl.classList.add('open');
+    modalEl.style.display = 'flex';
+    currentSearchQuery = '';
+    clearSelection();
+    if (modalEl.querySelector('#qpm-search')) modalEl.querySelector('#qpm-search').value = '';
+    renderFolders();
+    if (currentFolderId === 'trash') {
+        renderTrash();
+    } else {
+        renderPrompts();
+    }
+    updateTrashBadge();
+    syncFromExternalStorage(true);
+    showUpdateNotificationInModal();
+}
+
+function hideModal() {
+    if (!modalEl) return;
+    modalOpen = false;
+    modalEl.classList.remove('open');
+    const onTransitionEnd = () => {
+        if (!modalOpen && modalEl) {
+            modalEl.style.display = 'none';
         }
-        updateTrashBadge();
-        syncFromExternalStorage(true);
-        // Показываем уведомление об обновлении, если есть
-        showUpdateNotificationInModal();
+        if (modalEl) modalEl.removeEventListener('transitionend', onTransitionEnd);
+    };
+    modalEl.addEventListener('transitionend', onTransitionEnd, { once: true });
+    setTimeout(() => {
+        if (!modalOpen && modalEl && modalEl.style.display !== 'none') {
+            modalEl.style.display = 'none';
+        }
+    }, 300);
+}
+
+function toggleModal() {
+    if (!modalOpen) {
+        showModal();
+    } else {
+        hideModal();
     }
 }
 
