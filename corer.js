@@ -1,14 +1,22 @@
 // ==UserScript==
+// ==UserScript==
 // @name         Universal Prompt Manager (Templates + Variables + Full Sync+шаблоны+токены+теги+makdown+версии с правильной нумерацией+поиск по тэгам (list и часть word, масса undo)
 // @namespace    http://tampermonkey.net/
-// @version      12.11
+// @version      12.9
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
+
+// @match        https://chat.qwen.ai/*
+// @match        https://chat.deepseek.com/*
+// @match        https://alice.yandex.ru/*
+// @match        https://giga.chat/*
+
 
 // @run-at       document-end
 // @downloadURL  https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/corer.js
 // @updateURL    https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/corer.js
 // @homepageURL  https://github.com/supersvetodiod/prompt-manager
+// ==/UserScript==
 // ==/UserScript==
 
 // core.js - ваш основной код
