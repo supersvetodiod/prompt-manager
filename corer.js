@@ -2400,14 +2400,22 @@ let pendingUpdateNotification = null;
 // === ПРОВЕРКА ОБНОВЛЕНИЙ С ПОКАЗОМ УВЕДОМЛЕНИЯ В МЕНЕДЖЕРЕ ===
 function checkForUpdates() {
     const lastVersion = localStorage.getItem('qpm_last_version');
+    
+    // Если версия изменилась или записи нет - показываем уведомление
     if (lastVersion !== SCRIPT_VERSION) {
+        // Сохраняем текущую версию
         localStorage.setItem('qpm_last_version', SCRIPT_VERSION);
         
+        // Создаём уведомление с изменениями
         pendingUpdateNotification = {
-            changes: [              
+            changes: [
+                '✨ Добавлено перетаскивание промтов между папками',
+                '🐛 Исправлено массовое удаление из корзины',
+                '🎉 Улучшено уведомление об обновлениях'
             ]
         };
         
+        // Если менеджер открыт - показываем сразу
         if (modalOpen && modalEl) {
             showUpdateNotificationInModal();
         }
@@ -5057,8 +5065,7 @@ overlay.querySelector('#qpm-changelog-btn').addEventListener('click', () => {
     if (!pendingUpdateNotification) {
         pendingUpdateNotification = {
             changes: [
-                'Добавлена функция перетаскивания промтов в папки',
-                'снова тут'
+                ''
             ]
         };
     }
