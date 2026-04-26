@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Prompt Manager (Templates + Variables + Full Sync+шаблоны+токены+теги+makdown+версии с правильной нумерацией+поиск по тэгам (list и часть word, масса undo)
 // @namespace    http://tampermonkey.net/
-// @version      12.12
+// @version      12.10
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
@@ -5061,11 +5061,12 @@ function createModal() {
 });
 
 overlay.querySelector('#qpm-changelog-btn').addEventListener('click', () => {
-    // Если уведомление ещё не создано, создаём с тестовым списком
+    // Если уведомление ещё не создано, создаём
     if (!pendingUpdateNotification) {
         pendingUpdateNotification = {
             changes: [
-                ''
+                '✨ Добавлено перетаскивание промтов между папками',
+                '🐛 Исправлено массовое удаление из корзины'
             ]
         };
     }
