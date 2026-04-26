@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Prompt Manager (Templates + Variables + Full Sync+шаблоны+токены+теги+makdown+версии с правильной нумерацией+поиск по тэгам (list и часть word, масса undo)
 // @namespace    http://tampermonkey.net/
-// @version      12.11
+// @version      12.12
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
@@ -1840,6 +1840,12 @@ const styles = `
     .giga\\.chat button[data-da_name="CallButton"] {
         margin-left: auto;
     }
+    .qpm-folder-item.drag-over-folder {
+    background: rgba(16, 163, 127, 0.3) !important;
+    border: 1px dashed #10a37f !important;
+    transform: scale(1.02);
+    transition: all 0.2s;
+}
 `;
 
 if (!document.getElementById('qpm-styles')) {
@@ -3679,23 +3685,63 @@ function renderFolders() {
             </div>
         </div>
         <div class="qpm-folder-item ${currentFolderId === FAVORITES_FOLDER_ID ? 'active' : ''} protected" data-folder-id="${FAVORITES_FOLDER_ID}">
-    <div class="qpm-folder-content">
-        <span class="qpm-folder-toggle ${favHasChildren ? '' : 'hidden'} ${favExpanded ? 'expanded' : ''}" data-toggle="${FAVORITES_FOLDER_ID}">▶</span>
-        <span class="qpm-folder-icon">⭐</span>
-        <span class="qpm-folder-name">${t('favorites')}</span>
-        <span class="qpm-folder-count">${favoritesCount}</span>
-    </div>
-    <div class="qpm-folder-actions">
-        <button class="subfolder" title="${t('subfolder')}" data-subfolder="${FAVORITES_FOLDER_ID}">📂</button>
-        <button class="delete disabled" title="${t('cannotDeleteFavorite')}" disabled style="opacity:0.5;cursor:not-allowed;">🔒</button>
-    </div>
-</div>
+            <div class="qpm-folder-content">
+                <span class="qpm-folder-toggle ${favHasChildren ? '' : 'hidden'} ${favExpanded ? 'expanded' : ''}" data-toggle="${FAVORITES_FOLDER_ID}">▶</span>
+                <span class="qpm-folder-icon">⭐</span>
+                <span class="qpm-folder-name">${t('favorites')}</span>
+                <span class="qpm-folder-count">${favoritesCount}</span>
+            </div>
+            <div class="qpm-folder-actions">
+                <button class="subfolder" title="${t('subfolder')}" data-subfolder="${FAVORITES_FOLDER_ID}">📂</button>
+                <button class="delete disabled" title="${t('cannotDeleteFavorite')}" disabled style="opacity:0.5;cursor:not-allowed;">🔒</button>
+            </div>
+        </div>
     `;
     if (favExpanded) {
         html += renderFolderTree(FAVORITES_FOLDER_ID, 0);
     }
     html += renderFolderTree(null, 0);
     list.innerHTML = html;
+    
+    // Добавляем обработчики для drop на папки
+    list.querySelectorAll('.qpm-folder-item').forEach(item => {
+        const folderId = item.dataset.folderId;
+        if (!folderId) return;
+        
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            item.classList.add('drag-over-folder');
+        });
+        
+        item.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            item.classList.remove('drag-over-folder');
+        });
+        
+        item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            item.classList.remove('drag-over-folder');
+            
+            const draggedPromptId = e.dataTransfer.getData('text/plain');
+            if (draggedPromptId) {
+                let targetFolderId = folderId;
+                if (folderId === 'all') targetFolderId = null;
+                
+                const prompt = data.prompts.find(p => p.id === draggedPromptId);
+                if (prompt && !prompt.deleted) {
+                    prompt.folderId = targetFolderId;
+                    saveData();
+                    renderPrompts(currentSearchQuery);
+                    renderFolders();
+                    showToast(t('promptMoved'));
+                }
+            }
+        });
+    });
+    
     list.querySelectorAll('.qpm-folder-item').forEach(item => {
         const folderId = item.dataset.folderId;
         item.addEventListener('click', (e) => {
@@ -5011,7 +5057,7 @@ overlay.querySelector('#qpm-changelog-btn').addEventListener('click', () => {
     if (!pendingUpdateNotification) {
         pendingUpdateNotification = {
             changes: [
-                'тут',
+                'Добавлена функция перетаскивания промтов в папки',
                 'снова тут'
             ]
         };
