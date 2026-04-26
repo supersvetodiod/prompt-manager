@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Prompt Manager (Templates + Variables + Full Sync+шаблоны+токены+теги+makdown+версии с правильной нумерацией+поиск по тэгам (list и часть word, масса undo)
 // @namespace    http://tampermonkey.net/
-// @version      12.10
+// @version      12.9
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
@@ -2401,12 +2401,10 @@ let pendingUpdateNotification = null;
 function checkForUpdates() {
     const lastVersion = localStorage.getItem('qpm_last_version');
     
-    // Если версия изменилась или записи нет - показываем уведомление
     if (lastVersion !== SCRIPT_VERSION) {
-        // Сохраняем текущую версию
         localStorage.setItem('qpm_last_version', SCRIPT_VERSION);
         
-        // Создаём уведомление с изменениями
+        // ⬇️⬇️⬇️ ТОЛЬКО ЗДЕСЬ МЕНЯЙТЕ СПИСОК ИЗМЕНЕНИЙ ⬇️⬇️⬇️
         pendingUpdateNotification = {
             changes: [
                 '✨ Добавлено перетаскивание промтов между папками',
@@ -2414,14 +2412,13 @@ function checkForUpdates() {
                 '🎉 Улучшено уведомление об обновлениях'
             ]
         };
+        // ⬆️⬆️⬆️ ТОЛЬКО ЗДЕСЬ МЕНЯЙТЕ СПИСОК ИЗМЕНЕНИЙ ⬆️⬆️⬆️
         
-        // Если менеджер открыт - показываем сразу
         if (modalOpen && modalEl) {
             showUpdateNotificationInModal();
         }
     }
 }
-
 function showUpdateNotificationInModal() {
     if (!pendingUpdateNotification || !modalEl) return;
     
@@ -5061,16 +5058,14 @@ function createModal() {
 });
 
 overlay.querySelector('#qpm-changelog-btn').addEventListener('click', () => {
-    // Если уведомление ещё не создано, создаём
-    if (!pendingUpdateNotification) {
-        pendingUpdateNotification = {
-            changes: [
-                '✨ Добавлено перетаскивание промтов между папками',
-                '🐛 Исправлено массовое удаление из корзины'
-            ]
-        };
+    // Просто показываем то, что уже есть в pendingUpdateNotification
+    // НЕ перезаписываем!
+    if (pendingUpdateNotification) {
+        showChangelogModal();
+    } else {
+        // Если по какой-то причине нет уведомления, создаём с теми же данными
+        showToast('Нет информации об обновлениях', false);
     }
-    showChangelogModal();
 });
 
 overlay.querySelector('#qpm-export-btn').addEventListener('click', exportPrompts);
