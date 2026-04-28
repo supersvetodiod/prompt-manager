@@ -25,6 +25,167 @@
 
 
 // === ЛОКАЛИЗАЦИЯ ===
+
+// === ГЛОБАЛЬНАЯ ПЕРЕМЕННАЯ ДЛЯ ХРАНЕНИЯ ВЫДЕЛЕННОГО ТЕКСТА ===
+let lastSelectedText = '';
+
+// === ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ВЫДЕЛЕННОГО ТЕКСТА ===
+function getSelectedText() {
+    let selectedText = '';
+    if (window.getSelection) {
+        selectedText = window.getSelection().toString();
+    } else if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') {
+        const textarea = document.activeElement;
+        selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+    } else if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+        const input = document.activeElement;
+        selectedText = input.value.substring(input.selectionStart, input.selectionEnd);
+    }
+    return selectedText.trim();
+}
+
+// === СОХРАНЕНИЕ ВЫДЕЛЕННОГО ТЕКСТА ===
+function saveSelectedText() {
+    const selectedText = getSelectedText();
+    if (selectedText) {
+        lastSelectedText = selectedText;
+        localStorage.setItem('qpm_last_selected_text', selectedText);
+        showToast(`✅ Текст сохранён (${selectedText.length} симв.)`, false);
+        return true;
+    } else {
+        showToast('❌ Ничего не выделено', true);
+        return false;
+    }
+}
+
+// === ОТКРЫТИЕ РЕДАКТОРА С ПРЕДЗАПОЛНЕННЫМ ТЕКСТОМ ===
+function openEditorWithPrefilledText(prefilledText = '') {
+    try {
+        const old = document.getElementById('qpm-editor-overlay'); 
+        if (old) old.remove();
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'qpm-editor-overlay'; 
+        overlay.id = 'qpm-editor-overlay';
+        
+        function buildEditorFolderOptions(parentId, level = 0) {
+            const children = getChildrenFolders(parentId);
+            let opts = '';
+            children.forEach(f => {
+                const indent = ' '.repeat(level * 2);
+                const icon = (f.parentId === FAVORITES_FOLDER_ID) ? '⭐' : '📁';
+                opts += `<option value="${f.id}">${indent}${icon} ${escapeHtml(f.name)}</option>`;
+                opts += buildEditorFolderOptions(f.id, level + 1);
+            });
+            return opts;
+        }
+        
+        let folderOpts = `<option value="">${t('allPrompts')}</option>`;
+        folderOpts += `<option value="${FAVORITES_FOLDER_ID}">⭐ ${t('favorites')}</option>`;
+        
+        const favChildren = getChildrenFolders(FAVORITES_FOLDER_ID);
+        favChildren.forEach(f => {
+            const indent = '  ';
+            folderOpts += `<option value="${f.id}">${indent}⭐ ${escapeHtml(f.name)} (в избранном)</option>`;
+            folderOpts += buildEditorFolderOptions(f.id, 2);
+        });
+        folderOpts += buildEditorFolderOptions(null);
+        
+        const escapedText = escapeHtml(prefilledText);
+        
+        overlay.innerHTML = `
+            <div class="qpm-editor" style="width: 650px; max-height: 85vh; display: flex; flex-direction: column;">
+                <div class="qpm-editor-title" style="flex-shrink: 0;">
+                    📝 ${t('newPrompt')}
+                    <span style="font-size: 11px; color: #10a37f; margin-left: 10px;">📋 Текст из выделения автоматически вставлен</span>
+                    <div class="qpm-editor-close" style="float: right; cursor: pointer; font-size: 24px; color: #aaa;" onclick="document.getElementById('qpm-editor-overlay')?.remove()">&times;</div>
+                </div>
+                <div style="flex: 1; overflow-y: auto; padding-right: 5px;">
+                    <div class="qpm-editor-field">
+                        <label>${t('promptName')} *</label>
+                        <input type="text" class="qpm-editor-name-input" id="qpm-editor-name" placeholder="${t('promptName')}" value="">
+                    </div>
+                    <div class="qpm-editor-field">
+                        <label>${t('folder')} (${t('optional')})</label>
+                        <div class="qpm-editor-folder-select"><select id="qpm-editor-folder">${folderOpts}</select></div>
+                    </div>
+                    <div class="qpm-editor-field">
+                        <label>${t('promptText')} *</label>
+                        <textarea class="qpm-editor-textarea" id="qpm-editor-text" placeholder="${t('promptText')}...\n\n💡 ${t('variableHint')}" style="min-height: 150px;">${escapedText}</textarea>
+                    </div>
+                </div>
+                <div class="qpm-editor-buttons" style="flex-shrink: 0; margin-top: 15px;">
+                    <button class="qpm-editor-btn qpm-editor-btn-cancel" id="qpm-editor-cancel">${t('cancel')}</button>
+                    <button class="qpm-editor-btn qpm-editor-btn-save" id="qpm-editor-save">${t('save')}</button>
+                </div>
+            </div>`;
+        
+        document.body.appendChild(overlay);
+        overlay.style.display = 'flex';
+        
+        const closeEditor = () => { 
+            const o = document.getElementById('qpm-editor-overlay'); 
+            if (o) o.remove(); 
+        };
+        
+        overlay.querySelector('.qpm-editor-close').addEventListener('click', closeEditor);
+        overlay.querySelector('#qpm-editor-cancel').addEventListener('click', closeEditor);
+        overlay.querySelector('#qpm-editor-save').addEventListener('click', () => {
+            const name = overlay.querySelector('#qpm-editor-name').value.trim();
+            const text = overlay.querySelector('#qpm-editor-text').value;
+            const folderId = overlay.querySelector('#qpm-editor-folder').value || null;
+            
+            if (!name) { alert(t('promptName')); return; }
+            if (!text) { alert(t('promptText')); return; }
+            
+            const newPrompt = {
+                id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                name: name,
+                text: text,
+                folderId: folderId,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+                pinned: false,
+                order: Date.now(),
+                deleted: false,
+                deletedAt: null,
+                tags: [],
+                history: []
+            };
+            
+            data.prompts.push(newPrompt);
+            saveData();
+            closeEditor();
+            renderFolders();
+            renderPrompts(modalEl?.querySelector('#qpm-search')?.value || '');
+            showToast(`✅ Промпт "${name}" создан!`, false);
+            
+            lastSelectedText = '';
+            localStorage.removeItem('qpm_last_selected_text');
+        });
+        
+        setTimeout(() => { 
+            const nameInput = overlay.querySelector('#qpm-editor-name');
+            if (nameInput) { 
+                nameInput.focus();
+                const firstWords = prefilledText.replace(/\n/g, ' ').substring(0, 50);
+                if (firstWords) {
+                    nameInput.value = firstWords;
+                    nameInput.select();
+                }
+            } 
+        }, 50);
+        
+        overlay.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeEditor();
+            else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                overlay.querySelector('#qpm-editor-save').click();
+            }
+        });
+    } catch (e) { console.error('QPM: Editor error', e); alert(t('error')); }
+}
+    
 const I18N = {
     ru: {
         title: 'Менеджер Промтов',
@@ -4999,6 +5160,7 @@ function createModal() {
 <button class="qpm-sidebar-action-btn export" id="qpm-export-btn" title="${t('export')}">📤</button>
                             <button class="qpm-sidebar-action-btn export-markdown" id="qpm-export-md-btn" title="${t('exportMarkdown')}" style="background: linear-gradient(145deg, #e67e22, #d35400);">📝</button>
                             <button class="qpm-add-prompt-btn" id="qpm-add-prompt">${t('newPrompt')}</button>
+                            <button class="qpm-add-prompt-btn" id="qpm-from-selection" style="background: linear-gradient(145deg, #8e44ad, #6c3483); margin-left: 5px;">📋 Из выделенного</button>
                         </div>
                     </div>
                     <div id="qpm-mass-actions-bar" class="qpm-mass-actions-bar hidden">
@@ -5080,6 +5242,14 @@ function createModal() {
     overlay.addEventListener('click', (e) => { if (e.target === overlay) toggleModal(); });
     overlay.querySelector('#qpm-add-folder').addEventListener('click', () => { createFolder(null); autoSave(); });
     overlay.querySelector('#qpm-add-prompt').addEventListener('click', () => openEditor(null));
+    overlay.querySelector('#qpm-from-selection').addEventListener('click', () => {
+    const savedText = localStorage.getItem('qpm_last_selected_text') || lastSelectedText;
+    if (savedText) {
+        openEditorWithPrefilledText(savedText);
+    } else {
+        showToast('❌ Нет сохранённого текста. Сначала выделите текст и нажмите Ctrl+Shift+S', true);
+    }
+});
     overlay.querySelector('#qpm-backup-btn').addEventListener('click', () => {
     showBackupDialog();
 });
@@ -5403,7 +5573,62 @@ function alignGigaChatButtons() {
 
 function autoSave() { saveData(false); }
 
-// === ЗАПУСК ===
+// === ГЛОБАЛЬНЫЙ ОБРАБОТЧИК Ctrl+Shift+S ===
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.code === 'KeyS') {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const selectedText = getSelectedText();
+        if (selectedText) {
+            lastSelectedText = selectedText;
+            localStorage.setItem('qpm_last_selected_text', selectedText);
+            showToast(`✅ Текст сохранён (${selectedText.length} симв.)`, false);
+            
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                try {
+                    const range = selection.getRangeAt(0);
+                    const span = document.createElement('span');
+                    span.style.backgroundColor = '#10a37f';
+                    span.style.opacity = '0.3';
+                    span.style.transition = 'opacity 0.5s';
+                    range.surroundContents(span);
+                    setTimeout(() => {
+                        span.style.opacity = '0';
+                        setTimeout(() => {
+                            const parent = span.parentNode;
+                            if (parent) {
+                                while (span.firstChild) parent.insertBefore(span.firstChild, span);
+                                parent.removeChild(span);
+                            }
+                        }, 500);
+                    }, 100);
+                } catch(e) {}
+            }
+        } else {
+            showToast('❌ Ничего не выделено. Выделите текст на странице.', true);
+        }
+    }
+});
+    
+
+    // === КОНТЕКСТНОЕ МЕНЮ ===
+if (typeof GM_registerMenuCommand !== 'undefined') {
+    GM_registerMenuCommand('📋 Создать промпт из выделенного текста', () => {
+        const selectedText = getSelectedText();
+        if (selectedText) {
+            lastSelectedText = selectedText;
+            localStorage.setItem('qpm_last_selected_text', selectedText);
+            if (!modalOpen) showModal();
+            setTimeout(() => openEditorWithPrefilledText(selectedText), 200);
+        } else {
+            alert('❌ Сначала выделите текст на странице!');
+        }
+    });
+}
+    
+    // === ЗАПУСК ===
 loadData();
 loadBackupsFromStorage();
 checkDailyBackup();
