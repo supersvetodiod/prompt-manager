@@ -36,8 +36,7 @@
 // @downloadURL  https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/corer.js
 // @updateURL    https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/corer.js
 // @homepageURL  https://github.com/supersvetodiod/prompt-manager
-// ==/UserScript==
-// ==/UserScript==
+
 
 // core.js - ваш основной код
 (function() {
