@@ -17,6 +17,20 @@
 // @match        https://alice.yandex.ru/*
 // @match        https://giga.chat/*
 
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_registerMenuCommand
+// @grant        GM_info
+// @grant        unsafeWindow
+// @grant        window.close
+// @grant        window.focus
+// @grant        GM_addStyle
+// @grant        GM_getResourceText
+// @grant        GM_getResourceURL
+// @grant        GM_listValues
+// @grant        GM_deleteValue
+// @grant        GM_xmlhttpRequest
+
 
 // @run-at       document-end
 // @downloadURL  https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/corer.js
