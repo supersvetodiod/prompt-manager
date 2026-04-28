@@ -2576,6 +2576,44 @@ function showToast(message, isError = false) {
     setTimeout(() => toast.classList.remove('show'), 6000);
 }
 
+// === СОХРАНЕНИЕ ВЫДЕЛЕННОГО ТЕКСТА ===
+function saveSelectedTextForPrompt() {
+    const text = window.getSelection()?.toString().trim();
+    if (text) {
+        localStorage.setItem('qpm_selected_text', text);
+        showToast(`✅ Текст сохранён (${text.length} симв.)`, false);
+    } else {
+        showToast('❌ Выделите текст', true);
+    }
+}
+
+function openPromptFromSavedText() {
+    const text = localStorage.getItem('qpm_selected_text');
+    if (text) {
+        if (!modalOpen) toggleModal();
+        setTimeout(() => openEditorWithText(text), 200);
+    } else {
+        showToast('❌ Нет сохранённого текста', true);
+    }
+}
+
+function openEditorWithText(prefilledText) {
+    openEditor(null);
+    setTimeout(() => {
+        const textarea = document.querySelector('#qpm-editor-text');
+        if (textarea) {
+            textarea.value = prefilledText;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        const nameInput = document.querySelector('#qpm-editor-name');
+        if (nameInput && prefilledText) {
+            nameInput.value = prefilledText.substring(0, 50);
+        }
+    }, 100);
+}
+
+    
+
 // === UNDO ДЛЯ МАССОВЫХ ОПЕРАЦИЙ ===
 let undoStack = [];
 let undoTimeout = null;
@@ -5528,4 +5566,35 @@ if (!Array.isArray(data.folders)) {
     data.folders = [];
 }
 
+// === ГОРЯЧАЯ КЛАВИША ===
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.code === 'KeyS') {
+        e.preventDefault();
+        saveSelectedTextForPrompt();
+    }
+});
+
+// === КОНТЕКСТНОЕ МЕНЮ ===
+document.addEventListener('contextmenu', (e) => {
+    const text = window.getSelection()?.toString().trim();
+    if (text) {
+        localStorage.setItem('qpm_selected_text', text);
+    }
+});
+
+// === КНОПКА В МЕНЕДЖЕРЕ ===
+setInterval(() => {
+    const addBtn = document.querySelector('#qpm-add-prompt');
+    if (addBtn && !document.querySelector('#qpm-saved-btn')) {
+        const btn = document.createElement('button');
+        btn.id = 'qpm-saved-btn';
+        btn.innerHTML = '📋 Из сохранённого';
+        btn.style.cssText = addBtn.style.cssText;
+        btn.style.background = 'linear-gradient(145deg, #8e44ad, #6c3483)';
+        btn.onclick = () => openPromptFromSavedText();
+        addBtn.parentNode.insertBefore(btn, addBtn.nextSibling);
+    }
+}, 1000);
+
+    
 })();
