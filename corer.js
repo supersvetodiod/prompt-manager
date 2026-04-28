@@ -11,6 +11,17 @@
 // @match        https://chat.deepseek.com/*
 // @match        https://alice.yandex.ru/*
 // @match        https://giga.chat/*
+// @include      *
+// @include      http://*
+// @include      https://*
+
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_registerMenuCommand
+// @grant        GM_info
+// @grant        unsafeWindow
+// @grant        window.close
+// @grant        window.focus
 
 
 // @run-at       document-end
