@@ -6,9 +6,12 @@
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
-// @include      *
-// @run-at       document-start
 // @match        *://*/*
+// @match        http://*/*
+// @match        https://*/*
+// @include      *
+// @include      http://*
+// @include      https://*
 // @match        https://chat.qwen.ai/*
 // @match        https://chat.deepseek.com/*
 // @match        https://alice.yandex.ru/*
