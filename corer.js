@@ -31,7 +31,7 @@
 // @grant        GM_deleteValue
 // @grant        GM_xmlhttpRequest
 
-
+// @run-at       document-start
 // @run-at       document-end
 // @downloadURL  https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/corer.js
 // @updateURL    https://github.com/supersvetodiod/prompt-manager/raw/refs/heads/main/corer.js
