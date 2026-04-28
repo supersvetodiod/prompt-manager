@@ -6,6 +6,7 @@
 // @description  Менеджер промтов с поддержкой переменных {{var}}, синхронизацией между Qwen и DeepSeek
 // @author       You
 
+// @match        *://*/*
 // @match        https://chat.qwen.ai/*
 // @match        https://chat.deepseek.com/*
 // @match        https://alice.yandex.ru/*
