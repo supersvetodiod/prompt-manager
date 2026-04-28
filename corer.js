@@ -11,17 +11,6 @@
 // @match        https://chat.deepseek.com/*
 // @match        https://alice.yandex.ru/*
 // @match        https://giga.chat/*
-// @include      *
-// @include      http://*
-// @include      https://*
-
-// @grant        GM_setValue
-// @grant        GM_getValue
-// @grant        GM_registerMenuCommand
-// @grant        GM_info
-// @grant        unsafeWindow
-// @grant        window.close
-// @grant        window.focus
 
 
 // @run-at       document-end
@@ -37,36 +26,6 @@
 
 
 // === ЛОКАЛИЗАЦИЯ ===
-// === ПЕРЕМЕННАЯ ДЛЯ ВЫДЕЛЕННОГО ТЕКСТА ===
-let lastSelectedText = '';
-
-// === ПОЛУЧЕНИЕ ВЫДЕЛЕННОГО ТЕКСТА ===
-function getSelectedText() {
-    // Самый простой и надёжный способ
-    const selection = window.getSelection();
-    if (selection && selection.toString()) {
-        return selection.toString().trim();
-    }
-    
-    // Для текстовых полей
-    const activeEl = document.activeElement;
-    if (activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'INPUT')) {
-        const start = activeEl.selectionStart;
-        const end = activeEl.selectionEnd;
-        if (start !== end) {
-            return activeEl.value.substring(start, end).trim();
-        }
-    }
-    
-    return '';
-}
-
-
-
-
-
-
-    
 const I18N = {
     ru: {
         title: 'Менеджер Промтов',
@@ -2617,128 +2576,6 @@ function showToast(message, isError = false) {
     setTimeout(() => toast.classList.remove('show'), 6000);
 }
 
-    // === ОТКРЫТИЕ СОЗДАНИЯ ПРОМПТА С ТЕКСТОМ ===
-function createPromptFromText(text) {
-    console.log('QPM: createPromptFromText вызвана с текстом:', text);
-    
-    if (!text || text.length === 0) {
-        // Пробуем получить текст из localStorage
-        text = localStorage.getItem('qpm_last_selected_text');
-        console.log('QPM: Текст из localStorage:', text);
-    }
-    
-    if (!text || text.length === 0) {
-        showToast('❌ Нет текста для создания промпта. Сначала выделите текст и нажмите Ctrl+Shift+S', true);
-        return;
-    }
-    
-    // Открываем менеджер
-    if (!modalOpen) {
-        showModal();
-    }
-    
-    // Небольшая задержка перед открытием редактора
-    setTimeout(() => {
-        const overlay = document.createElement('div');
-        overlay.className = 'qpm-editor-overlay';
-        overlay.id = 'qpm-editor-overlay';
-        
-        let folderOptions = '<option value="">📂 Все промты</option>';
-        folderOptions += `<option value="${FAVORITES_FOLDER_ID}">⭐ Избранное</option>`;
-        
-        if (data && data.folders) {
-            data.folders.forEach(folder => {
-                if (folder.id !== FAVORITES_FOLDER_ID && !folder.isProtected) {
-                    folderOptions += `<option value="${folder.id}">📁 ${escapeHtml(folder.name)}</option>`;
-                }
-            });
-        }
-        
-        const escapedText = escapeHtml(text);
-        // Берём первые 50 символов для имени
-        let firstWords = text.replace(/\n/g, ' ').substring(0, 50);
-        if (firstWords.length === 50) firstWords += '...';
-        
-        overlay.innerHTML = `
-            <div class="qpm-editor" style="width: 650px; max-width: 95%; background: #202123; border-radius: 12px;">
-                <div class="qpm-editor-title" style="padding: 15px 20px; border-bottom: 1px solid #444; font-size: 18px; font-weight: bold;">
-                    ✨ Новый промпт из выделенного текста
-                    <span style="float:right; cursor:pointer; font-size:24px; color:#aaa;" onclick="this.closest('.qpm-editor-overlay').remove()">&times;</span>
-                </div>
-                <div style="padding: 20px;">
-                    <div class="qpm-editor-field" style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; color: #888;">📝 Название:</label>
-                        <input type="text" id="qpm-new-name" class="qpm-editor-name-input" value="${escapeHtml(firstWords)}" style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 6px;">
-                    </div>
-                    <div class="qpm-editor-field" style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; color: #888;">📁 Папка:</label>
-                        <select id="qpm-new-folder" style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 6px;">
-                            ${folderOptions}
-                        </select>
-                    </div>
-                    <div class="qpm-editor-field" style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; color: #888;">📄 Текст промпта:</label>
-                        <textarea id="qpm-new-text" class="qpm-editor-textarea" style="width: 100%; min-height: 200px; padding: 10px; background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 6px; font-family: monospace;">${escapedText}</textarea>
-                    </div>
-                    <div class="qpm-editor-buttons" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                        <button class="qpm-editor-btn qpm-editor-btn-cancel" onclick="this.closest('.qpm-editor-overlay').remove()" style="padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer;">Отмена</button>
-                        <button class="qpm-editor-btn qpm-editor-btn-save" id="qpm-save-new-prompt" style="padding: 8px 16px; background: #10a37f; color: white; border: none; border-radius: 6px; cursor: pointer;">💾 Сохранить промпт</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(overlay);
-        overlay.style.display = 'flex';
-        
-        document.getElementById('qpm-save-new-prompt').onclick = () => {
-            const name = document.getElementById('qpm-new-name').value.trim();
-            const textarea = document.getElementById('qpm-new-text').value;
-            const folderId = document.getElementById('qpm-new-folder').value || null;
-            
-            if (!name) { showToast('Введите название', true); return; }
-            if (!textarea) { showToast('Введите текст', true); return; }
-            
-            const newPrompt = {
-                id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-                name: name,
-                text: textarea,
-                folderId: folderId,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-                pinned: false,
-                order: Date.now(),
-                deleted: false,
-                deletedAt: null,
-                tags: [],
-                history: []
-            };
-            
-            data.prompts.push(newPrompt);
-            saveData();
-            overlay.remove();
-            
-            if (modalOpen) { 
-                renderFolders(); 
-                renderPrompts(); 
-            }
-            
-            showToast(`✅ Промпт "${name}" создан!`, false);
-            
-            // Очищаем сохранённый текст
-            lastSelectedText = '';
-            localStorage.removeItem('qpm_last_selected_text');
-        };
-        
-        // Фокус на поле имени
-        setTimeout(() => {
-            const nameInput = document.getElementById('qpm-new-name');
-            if (nameInput) nameInput.focus();
-        }, 100);
-        
-    }, 200);
-}
-
 // === UNDO ДЛЯ МАССОВЫХ ОПЕРАЦИЙ ===
 let undoStack = [];
 let undoTimeout = null;
@@ -5244,7 +5081,6 @@ function createModal() {
     overlay.addEventListener('click', (e) => { if (e.target === overlay) toggleModal(); });
     overlay.querySelector('#qpm-add-folder').addEventListener('click', () => { createFolder(null); autoSave(); });
     overlay.querySelector('#qpm-add-prompt').addEventListener('click', () => openEditor(null));
-    
     overlay.querySelector('#qpm-backup-btn').addEventListener('click', () => {
     showBackupDialog();
 });
@@ -5568,163 +5404,7 @@ function alignGigaChatButtons() {
 
 function autoSave() { saveData(false); }
 
-
-    
-
-
-   // === ГОРЯЧАЯ КЛАВИША CTRL+SHIFT+S ===
-// === ГОРЯЧАЯ КЛАВИША CTRL+SHIFT+S ===
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.shiftKey && e.code === 'KeyS') {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Небольшая задержка чтобы гарантировать получение выделения
-        setTimeout(() => {
-            const text = getSelectedText();
-            console.log('QPM: Выделенный текст:', text);
-            
-            if (text && text.length > 0) {
-                lastSelectedText = text;
-                // Сохраняем в localStorage с меткой времени
-                localStorage.setItem('qpm_last_selected_text', text);
-                localStorage.setItem('qpm_last_selected_time', Date.now().toString());
-                showToast(`✅ Текст сохранён (${text.length} симв.)`, false);
-                
-                // Визуальная индикация что текст сохранился
-                const sel = window.getSelection();
-                if (sel && sel.rangeCount > 0) {
-                    const range = sel.getRangeAt(0);
-                    const span = document.createElement('span');
-                    span.style.backgroundColor = '#10a37f';
-                    span.style.opacity = '0.3';
-                    span.style.transition = 'opacity 0.5s';
-                    try {
-                        range.surroundContents(span);
-                        setTimeout(() => {
-                            span.style.opacity = '0';
-                            setTimeout(() => {
-                                if (span.parentNode) {
-                                    while (span.firstChild) span.parentNode.insertBefore(span.firstChild, span);
-                                    span.remove();
-                                }
-                            }, 500);
-                        }, 100);
-                    } catch(e) {}
-                }
-            } else {
-                showToast('❌ Ничего не выделено. Выделите текст мышкой', true);
-            }
-        }, 10);
-    }
-});
-
-// === ПУНКТ В КОНТЕКСТНОМ МЕНЮ (ПРАВАЯ КНОПКА) ===
-(function addContextMenuPrompt() {
-    const style = document.createElement('style');
-    style.textContent = `
-        // === ПУНКТ В КОНТЕКСТНОМ МЕНЮ (ПРАВАЯ КНОПКА) ===
-(function addContextMenuPrompt() {
-    const style = document.createElement('style');
-    style.textContent = `
-        .qpm-context-menu-item {
-            position: fixed;
-            background: #2a2b2e;
-            border: 1px solid #10a37f;
-            border-radius: 8px;
-            padding: 8px 16px;
-            z-index: 1000000;
-            cursor: pointer;
-            font-size: 13px;
-            color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            font-family: sans-serif;
-        }
-        .qpm-context-menu-item:hover {
-            background: #10a37f;
-        }
-    `;
-    document.head.appendChild(style);
-    
-    let activeMenu = null;
-    
-    document.addEventListener('contextmenu', (e) => {
-        if (activeMenu) activeMenu.remove();
-        
-        // Получаем выделенный текст ПРЯМО СЕЙЧАС
-        const selectedText = getSelectedText();
-        console.log('QPM: Контекстное меню - выделенный текст:', selectedText);
-        
-        if (selectedText && selectedText.length > 0) {
-            // Сохраняем то что выделили
-            lastSelectedText = selectedText;
-            localStorage.setItem('qpm_last_selected_text', selectedText);
-            
-            const preview = selectedText.length > 40 ? selectedText.substring(0, 40) + '...' : selectedText;
-            
-            activeMenu = document.createElement('div');
-            activeMenu.className = 'qpm-context-menu-item';
-            activeMenu.innerHTML = '📋 Создать промпт из: "' + preview + '"';
-            activeMenu.style.left = (e.pageX + 10) + 'px';
-            activeMenu.style.top = (e.pageY + 10) + 'px';
-            activeMenu.onclick = () => {
-                const text = localStorage.getItem('qpm_last_selected_text');
-                console.log('QPM: Клик по меню, текст:', text);
-                if (text) createPromptFromText(text);
-                if (activeMenu) activeMenu.remove();
-            };
-            document.body.appendChild(activeMenu);
-            
-            setTimeout(() => {
-                const removeMenu = (event) => {
-                    if (activeMenu && !activeMenu.contains(event.target)) {
-                        activeMenu.remove();
-                        activeMenu = null;
-                    }
-                };
-                document.addEventListener('click', removeMenu, { once: true });
-            }, 10);
-        }
-    });
-})();
-        .qpm-context-menu-item:hover {
-            background: #10a37f;
-        }
-    `;
-    document.head.appendChild(style);
-    
-    let activeMenu = null;
-    
-    document.addEventListener('contextmenu', (e) => {
-        if (activeMenu) activeMenu.remove();
-        
-        const savedText = localStorage.getItem('qpm_last_selected_text');
-        if (savedText && savedText.length > 0) {
-            activeMenu = document.createElement('div');
-            activeMenu.className = 'qpm-context-menu-item';
-            activeMenu.innerHTML = '📋 Создать промпт из "' + savedText.substring(0, 30) + (savedText.length > 30 ? '..."' : '"');
-            activeMenu.style.left = (e.pageX + 10) + 'px';
-            activeMenu.style.top = (e.pageY + 10) + 'px';
-            activeMenu.onclick = () => {
-                const text = localStorage.getItem('qpm_last_selected_text');
-                if (text) createPromptFromText(text);
-                if (activeMenu) activeMenu.remove();
-            };
-            document.body.appendChild(activeMenu);
-            
-            setTimeout(() => {
-                const removeMenu = (event) => {
-                    if (activeMenu && !activeMenu.contains(event.target)) {
-                        activeMenu.remove();
-                        activeMenu = null;
-                    }
-                };
-                document.addEventListener('click', removeMenu, { once: true });
-            }, 10);
-        }
-    });
-})(); 
-    // === ЗАПУСК ===
+// === ЗАПУСК ===
 loadData();
 loadBackupsFromStorage();
 checkDailyBackup();
