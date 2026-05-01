@@ -165,7 +165,7 @@ const I18N = {
         createCopy: 'Создать копию',
         versionHistoryBadge: 'История версий: ${count} сохранённых версий',
         editorHotkeys: '⌨️ Ctrl+Enter 💾 | Shift+S 💾 | Esc ✖️',
-modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖️',
+modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂  Esc ✖️',
         promptsMovedToTrash: '🗑️ ${count} промптов перемещено в корзину',
         promptsRestored: '↩️ ${count} промптов восстановлено',
         promptsMoved: '📁 ${count} промптов перемещено',
@@ -331,7 +331,7 @@ view: '📋 Посмотреть изменения'
         createCopy: 'Create copy',
         versionHistoryBadge: 'Version history: ${count} saved versions',
         editorHotkeys: '⌨️ Ctrl+Enter 💾 | Shift+S 💾 | Esc ✖️',
-modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖️',
+modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Esc ✖️',
         promptsMovedToTrash: '🗑️ ${count} prompts moved to trash',
         promptsRestored: '↩️ ${count} prompts restored',
         promptsMoved: '📁 ${count} prompts moved',
@@ -497,7 +497,7 @@ view: '📋 View changes'
         createCopy: 'Créer une copie',
         versionHistoryBadge: 'Historique : ${count} versions',
         editorHotkeys: '⌨️ Ctrl+Enter 💾 | Shift+S 💾 | Esc ✖️',
-modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖️',
+modalHotkeys: '⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Esc ✖️',
         promptsMovedToTrash: '🗑️ ${count} prompts déplacés vers la corbeille',
         promptsRestored: '↩️ ${count} prompts restaurés',
         promptsMoved: '📁 ${count} prompts déplacés',
@@ -4951,7 +4951,7 @@ function createModal() {
                 <div class="qpm-title">
                     <span>📚 ${t('title')}</span>
                     <span style="font-size: 10px; color: #888; margin-left: 10px;">
-    ⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Shift+F 🔍 | Esc ✖️
+    ⌨️ Ctrl+Alt+N ➕ | Ctrl+Alt+P 📂 | Esc ✖️
 </span>
                     ${storageSource !== 'unknown' ? `<span class="qpm-storage-badge" title="${storageSource === 'gm' ? 'GM Storage (Cross-site)' : 'localStorage (Cross-site)'}">${storageSource === 'gm' ? '🔒' : '🌐'}</span>` : ''}
                     <span class="qpm-sync-badge" id="qpm-sync-badge" title="Данные синхронизируются между Qwen и DeepSeek">🔄 Cross-site Sync</span>
@@ -5429,18 +5429,7 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    // Shift+F - фокус на поиск (когда менеджер открыт)
-    if (e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && e.code === 'KeyF') {
-        e.preventDefault();
-        if (modalOpen && modalEl) {
-            const searchInput = modalEl.querySelector('#qpm-search');
-            if (searchInput) {
-                searchInput.focus();
-                searchInput.select();
-            }
-        }
-        return;
-    }
+    
 
     // Shift+S - сохранить (когда редактор открыт)
     if (e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && e.code === 'KeyS') {
